@@ -1,8 +1,8 @@
 package com.yeriix.tftstats.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.yeray.tftstats.config.RiotProperties;
-import com.yeray.tftstats.dto.AccountDto;
+import tools.jackson.databind.JsonNode;
+import com.yeriix.tftstats.config.RiotProperties;
+import com.yeriix.tftstats.dto.AccountDto;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -14,11 +14,11 @@ public class RiotClient {
 
     private final RestClient restClient;
 
-    public RiotClient(RiotProperties props, RestClient.Builder builder) {
-        this.restClient = builder
-                .baseUrl(props.regionalHost())
-                .defaultHeader("X-Riot-Token", props.apiKey())
-                .build();
+    public RiotClient(RiotProperties props) {
+    this.restClient = RestClient.builder()
+            .baseUrl(props.regionalHost())
+            .defaultHeader("X-Riot-Token", props.apiKey())
+            .build();
     }
 
     public AccountDto getAccount(String gameName, String tagLine) {
