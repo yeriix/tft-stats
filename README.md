@@ -5,3 +5,5 @@
    (Linux/macOS: `export RIOT_API_KEY=... && cd backend && ./mvnw spring-boot:run`)
 3. Frontend: `cd frontend && npm install && ng serve`
 4. Open http://localhost:4200
+
+![Screenshot](docs/screenshot.png)
