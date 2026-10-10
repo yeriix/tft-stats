@@ -1,0 +1,22 @@
+<h1>TFT Stats</h1>
+
+<div class="search-box">
+  <input [(ngModel)]="gameName" placeholder="Summoner name" />
+  <input [(ngModel)]="tagLine" placeholder="Tag (e.g. EUW)" />
+  <button (click)="search()" [disabled]="!gameName || !tagLine || loading()">Search</button>
+</div>
+
+@if (loading()) {
+  <p>Loading...</p>
+}
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@for (match of matches(); track match.metadata.match_id) {
+  <div class="match">
+    <strong>{{ match.metadata.match_id }}</strong>
+    <span>Participants: {{ match.metadata.participants.length }}</span>
+  </div>
+}
