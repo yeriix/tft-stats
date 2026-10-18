@@ -1,1 +1,62 @@
-<p>match-detail works!</p>
+<button class="link" (click)="goBack()">&larr; Back to profile</button>
+
+@if (loading()) {
+  <div class="state">Loading match...</div>
+}
+
+@if (error()) {
+  <div class="state error">{{ error() }}</div>
+}
+
+@if (match(); as m) {
+  <section class="card">
+    <h1>{{ m.queue }} <span class="muted">· Set {{ m.setNumber }}</span></h1>
+    <p class="muted">{{ formatDate(m.gameDatetime) }} · Duration {{ formatDuration(m.gameLengthSeconds) }}</p>
+  </section>
+
+  @for (p of m.participants; track $index) {
+    <section class="card participant" [class.you]="p.you">
+      <div class="participant-head">
+        <div class="placement" [class]="placementClass(p.placement)">#{{ p.placement }}</div>
+        <div>
+          <strong>{{ p.you ? 'Searched player' : 'Opponent' }}</strong>
+          <div class="participant-stats">
+            <span>Level <strong>{{ p.level }}</strong></span>
+            <span>Gold left <strong>{{ p.goldLeft }}</strong></span>
+            <span>Last round <strong>{{ p.lastRound }}</strong></span>
+            <span>Eliminations <strong>{{ p.playersEliminated }}</strong></span>
+            <span>Damage <strong>{{ p.totalDamageToPlayers }}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <h4>Traits</h4>
+      <div class="chips">
+        @for (t of p.traits; track t.name) {
+          <span class="chip" [class]="'style-' + t.style">{{ prettyName(t.name) }} {{ t.numUnits }}</span>
+        }
+      </div>
+
+      <h4>Units</h4>
+      <div class="chips">
+        @for (u of p.units; track $index) {
+          <span class="unit">
+            <span class="stars">{{ stars(u.tier) }}</span>{{ prettyName(u.characterId) }}
+            @if (u.items.length) {
+              <span class="unit-items">{{ itemsLabel(u.items) }}</span>
+            }
+          </span>
+        }
+      </div>
+
+      @if (p.augments.length) {
+        <h4>Augments</h4>
+        <div class="chips">
+          @for (a of p.augments; track $index) {
+            <span class="chip">{{ prettyName(a) }}</span>
+          }
+        </div>
+      }
+    </section>
+  }
+}
