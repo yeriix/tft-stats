@@ -1,22 +1,18 @@
-<h1>TFT Stats</h1>
+<section class="hero">
+  <h1>TFT Stats</h1>
+  <p class="muted">Look up any Teamfight Tactics player: rank, top 4 rate and match history.</p>
 
-<div class="search-box">
-  <input [(ngModel)]="gameName" placeholder="Summoner name" />
-  <input [(ngModel)]="tagLine" placeholder="Tag (e.g. EUW)" />
-  <button (click)="search()" [disabled]="!gameName || !tagLine || loading()">Search</button>
-</div>
+  <form class="search-form" (ngSubmit)="search()">
+    <input
+      name="riotId"
+      [(ngModel)]="riotId"
+      placeholder="Riot ID (e.g. Name#EUW)"
+      autocomplete="off"
+    />
+    <button type="submit" [disabled]="!riotId.trim()">Search</button>
+  </form>
 
-@if (loading()) {
-  <p>Loading...</p>
-}
-
-@if (error()) {
-  <p class="error">{{ error() }}</p>
-}
-
-@for (match of matches(); track match.metadata.match_id) {
-  <div class="match">
-    <strong>{{ match.metadata.match_id }}</strong>
-    <span>Participants: {{ match.metadata.participants.length }}</span>
-  </div>
-}
+  @if (error()) {
+    <p class="hint state error">{{ error() }}</p>
+  }
+</section>

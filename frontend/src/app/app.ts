@@ -1,13 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { Search } from './pages/search/search';
-
+import { Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
-  imports: [Search],
   selector: 'app-root',
-  styleUrl: './app.scss',
+  imports: [RouterOutlet, RouterLink],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
-export class App {
-  protected readonly title = signal('tft-stats-web');
-}
+export class App {}

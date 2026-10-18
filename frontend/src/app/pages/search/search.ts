@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TftService } from '../../services/TftService';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-search',
@@ -9,29 +9,25 @@ import { TftService } from '../../services/TftService';
   styleUrl: './search.scss',
 })
 export class Search {
-  private tftService = inject(TftService);
+  private router = inject(Router);
 
-  gameName = '';
-  tagLine = '';
-
-  matches = signal<any[]>([]);
-  loading = signal(false);
+  riotId = '';
   error = signal('');
 
   search() {
-    this.loading.set(true);
-    this.error.set('');
-    this.matches.set([]);
+    const value = this.riotId.trim();
+    const hash = value.lastIndexOf('#');
 
-    this.tftService.getMatches(this.gameName, this.tagLine).subscribe({
-      next: (data) => {
-        this.matches.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err.error?.detail ?? 'Unexpected error');
-        this.loading.set(false);
-      },
-    });
+    if (hash < 1 || hash === value.length - 1) {
+      this.error.set('Enter a Riot ID like Name#TAG');
+      return;
+    }
+
+    this.error.set('');
+    this.router.navigate([
+      '/player',
+      value.slice(0, hash).trim(),
+      value.slice(hash + 1).trim(),
+    ]);
   }
 }
