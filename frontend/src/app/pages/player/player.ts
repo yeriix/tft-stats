@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PlayerProfile } from '../../models/tft.models';
-import { TftService } from '../../services/tft';
+import { TftService } from '../../services/tft.services';
 import {
   itemsLabel,
   placementClass,

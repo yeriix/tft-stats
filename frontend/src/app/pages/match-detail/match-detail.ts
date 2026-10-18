@@ -4,7 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { MatchDetailResponse } from '../../models/tft.models';
-import { TftService } from '../../services/tft';
+import { TftService } from '../../services/tft.services';
+
 import {
   formatDate,
   formatDuration,
