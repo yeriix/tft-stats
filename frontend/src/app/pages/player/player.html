@@ -1,1 +1,81 @@
-<p>player works!</p>
+@if (loading()) {
+  <div class="state">Loading player data... (first search can take a few seconds)</div>
+}
+
+@if (error()) {
+  <div class="state error">{{ error() }}</div>
+  <p class="state"><a routerLink="/" class="link">Back to search</a></p>
+}
+
+@if (profile(); as p) {
+  <section class="card profile-header">
+    <div>
+      <h1>{{ p.gameName }} <span class="muted">#{{ p.tagLine }}</span></h1>
+      <a routerLink="/" class="link">New search</a>
+    </div>
+
+    @if (p.ranked; as r) {
+      <div class="rank-badge" [class]="tierClass(r.tier)">
+        <div class="rank-name">{{ rankLabel(r) }}</div>
+        <div class="rank-lp">{{ r.leaguePoints }} LP</div>
+      </div>
+    } @else {
+      <div class="rank-badge">
+        <div class="rank-name">Unranked</div>
+        <div class="rank-lp">No ranked TFT data</div>
+      </div>
+    }
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat">
+      <div class="value">{{ p.stats.averagePlacement }}</div>
+      <div class="label">Average placement</div>
+    </div>
+    <div class="stat">
+      <div class="value">{{ p.stats.top4Rate }}%</div>
+      <div class="label">Top 4 rate</div>
+    </div>
+    <div class="stat">
+      <div class="value">{{ p.stats.winRate }}%</div>
+      <div class="label">1st place rate</div>
+    </div>
+    <div class="stat">
+      <div class="value">{{ p.stats.gamesAnalyzed }}</div>
+      <div class="label">Games analyzed</div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Recent matches</h2>
+
+  @if (p.matches.length === 0) {
+    <div class="state">No recent matches found.</div>
+  }
+
+  @for (m of p.matches; track m.matchId) {
+    <a class="match-row" [routerLink]="['/match', m.matchId]" [queryParams]="{ puuid: p.puuid }">
+      <div class="placement" [class]="placementClass(m.player.placement)">#{{ m.player.placement }}</div>
+
+      <div class="match-meta">
+        <strong>{{ m.queue }}</strong>
+        <span>{{ timeAgo(m.gameDatetime) }}</span>
+        <span>Level {{ m.player.level }}</span>
+      </div>
+
+      <div class="match-body">
+        <div class="chips">
+          @for (t of m.player.traits; track t.name) {
+            <span class="chip" [class]="'style-' + t.style">{{ prettyName(t.name) }} {{ t.numUnits }}</span>
+          }
+        </div>
+        <div class="chips">
+          @for (u of m.player.units; track $index) {
+            <span class="unit" [title]="itemsLabel(u.items)">
+              <span class="stars">{{ stars(u.tier) }}</span>{{ prettyName(u.characterId) }}
+            </span>
+          }
+        </div>
+      </div>
+    </a>
+  }
+}
