@@ -29,8 +29,6 @@ export interface Participant {
   level: number;
   goldLeft: number;
   lastRound: number;
-  playersEliminated: number;
-  totalDamageToPlayers: number;
   you: boolean;
   augments: string[];
   traits: Trait[];
