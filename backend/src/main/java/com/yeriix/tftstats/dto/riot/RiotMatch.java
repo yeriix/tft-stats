@@ -28,8 +28,6 @@ public record RiotMatch(Metadata metadata, Info info) {
             int level,
             @JsonProperty("gold_left") int goldLeft,
             @JsonProperty("last_round") int lastRound,
-            @JsonProperty("players_eliminated") int playersEliminated,
-            @JsonProperty("total_damage_to_players") int totalDamageToPlayers,
             List<String> augments,
             List<Trait> traits,
             List<Unit> units) {

@@ -7,8 +7,6 @@ public record ParticipantDto(
         int level,
         int goldLeft,
         int lastRound,
-        int playersEliminated,
-        int totalDamageToPlayers,
         boolean you,
         List<String> augments,
         List<TraitDto> traits,

@@ -99,8 +99,6 @@ public class TftService {
                 p.level(),
                 p.goldLeft(),
                 p.lastRound(),
-                p.playersEliminated(),
-                p.totalDamageToPlayers(),
                 puuid.equals(p.puuid()),
                 nullSafe(p.augments()),
                 traits,
