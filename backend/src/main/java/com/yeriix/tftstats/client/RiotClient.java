@@ -3,28 +3,23 @@ package com.yeriix.tftstats.client;
 import com.yeriix.tftstats.config.RiotProperties;
 import com.yeriix.tftstats.dto.AccountDto;
 import com.yeriix.tftstats.dto.riot.LeagueEntryDto;
-import com.yeriix.tftstats.dto.riot.RiotMatch;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class RiotClient {
 
     private final RestClient regionalClient;
     private final RestClient platformClient;
+    private final RiotRateLimiter rateLimiter;
 
-    // Matches never change once played, so we can cache them safely.
-    // In-memory only for now; it will be replaced by MySQL persistence.
-    private final Map<String, RiotMatch> matchCache = new ConcurrentHashMap<>();
-
-    public RiotClient(RiotProperties props) {
+    public RiotClient(RiotProperties props, RiotRateLimiter rateLimiter) {
         this.regionalClient = buildClient(props.regionalHost(), props.apiKey());
         this.platformClient = buildClient(props.platformHost(), props.apiKey());
+        this.rateLimiter = rateLimiter;
     }
 
     private static RestClient buildClient(String baseUrl, String apiKey) {
@@ -35,6 +30,7 @@ public class RiotClient {
     }
 
     public AccountDto getAccount(String gameName, String tagLine) {
+        rateLimiter.acquire();
         return regionalClient.get()
                 .uri("/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}", gameName, tagLine)
                 .retrieve()
@@ -42,6 +38,7 @@ public class RiotClient {
     }
 
     public List<LeagueEntryDto> getLeagueEntries(String puuid) {
+        rateLimiter.acquire();
         return platformClient.get()
                 .uri("/tft/league/v1/by-puuid/{puuid}", puuid)
                 .retrieve()
@@ -49,20 +46,19 @@ public class RiotClient {
     }
 
     public List<String> getTftMatchIds(String puuid, int count) {
+        rateLimiter.acquire();
         return regionalClient.get()
                 .uri("/tft/match/v1/matches/by-puuid/{puuid}/ids?count={count}", puuid, count)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<String>>() {});
     }
 
-    public RiotMatch getTftMatch(String matchId) {
-        return matchCache.computeIfAbsent(matchId, this::fetchMatch);
-    }
-
-    private RiotMatch fetchMatch(String matchId) {
+    /** Returns the match exactly as Riot sends it, so it can be stored as is. */
+    public String getTftMatchRaw(String matchId) {
+        rateLimiter.acquire();
         return regionalClient.get()
                 .uri("/tft/match/v1/matches/{matchId}", matchId)
                 .retrieve()
-                .body(RiotMatch.class);
+                .body(String.class);
     }
 }

@@ -11,6 +11,8 @@ import com.yeriix.tftstats.dto.StatsDto;
 import com.yeriix.tftstats.dto.TraitDto;
 import com.yeriix.tftstats.dto.UnitDto;
 import com.yeriix.tftstats.dto.riot.RiotMatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -20,14 +22,18 @@ import java.util.Optional;
 @Service
 public class TftService {
 
+    private static final Logger log = LoggerFactory.getLogger(TftService.class);
+
     private static final int MATCH_COUNT = 20;
     private static final String RANKED_QUEUE = "RANKED_TFT";
     private static final String DOUBLE_UP = "Double Up";
 
     private final RiotClient riotClient;
+    private final MatchStore matchStore;
 
-    public TftService(RiotClient riotClient) {
+    public TftService(RiotClient riotClient, MatchStore matchStore) {
         this.riotClient = riotClient;
+        this.matchStore = matchStore;
     }
 
     public PlayerProfileDto getProfile(String gameName, String tagLine) {
@@ -43,8 +49,9 @@ public class TftService {
                         entry.leaguePoints() == null ? 0 : entry.leaguePoints()))
                 .orElse(null);
 
-        List<MatchSummaryDto> matches = riotClient.getTftMatchIds(puuid, MATCH_COUNT).stream()
-                .map(riotClient::getTftMatch)
+        syncRecentMatches(puuid);
+
+        List<MatchSummaryDto> matches = matchStore.findRecent(puuid, MATCH_COUNT).stream()
                 .map(match -> toSummary(match, puuid))
                 .flatMap(Optional::stream)
                 .toList();
@@ -54,7 +61,8 @@ public class TftService {
     }
 
     public MatchDetailDto getMatchDetail(String matchId, String puuid) {
-        RiotMatch match = riotClient.getTftMatch(matchId);
+        RiotMatch match = matchStore.find(matchId)
+                .orElseGet(() -> matchStore.save(riotClient.getTftMatchRaw(matchId)));
         RiotMatch.Info info = match.info();
 
         List<ParticipantDto> participants = info.participants().stream()
@@ -69,6 +77,18 @@ public class TftService {
                 queueName(info.queueId()),
                 info.tftSetNumber(),
                 participants);
+    }
+
+    /** Downloads from Riot only the recent matches that are not stored in the database yet. */
+    private void syncRecentMatches(String puuid) {
+        int fetched = 0;
+        for (String matchId : riotClient.getTftMatchIds(puuid, MATCH_COUNT)) {
+            if (!matchStore.exists(matchId)) {
+                matchStore.save(riotClient.getTftMatchRaw(matchId));
+                fetched++;
+            }
+        }
+        log.info("Match sync finished: {} new matches fetched from Riot, the rest came from the database", fetched);
     }
 
     private Optional<MatchSummaryDto> toSummary(RiotMatch match, String puuid) {
