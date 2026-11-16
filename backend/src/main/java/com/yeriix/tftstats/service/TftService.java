@@ -2,16 +2,20 @@ package com.yeriix.tftstats.service;
 
 import com.yeriix.tftstats.client.RiotClient;
 import com.yeriix.tftstats.dto.AccountDto;
+import com.yeriix.tftstats.dto.ItemDto;
 import com.yeriix.tftstats.dto.MatchDetailDto;
 import com.yeriix.tftstats.dto.MatchPageDto;
 import com.yeriix.tftstats.dto.MatchSummaryDto;
 import com.yeriix.tftstats.dto.ParticipantDto;
 import com.yeriix.tftstats.dto.PlayerProfileDto;
 import com.yeriix.tftstats.dto.RankDto;
+import com.yeriix.tftstats.dto.SpriteDto;
 import com.yeriix.tftstats.dto.StatsDto;
 import com.yeriix.tftstats.dto.TraitDto;
 import com.yeriix.tftstats.dto.UnitDto;
 import com.yeriix.tftstats.dto.riot.RiotMatch;
+import com.yeriix.tftstats.staticdata.StaticDataFile;
+import com.yeriix.tftstats.staticdata.StaticDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class TftService {
@@ -33,10 +39,13 @@ public class TftService {
 
     private final RiotClient riotClient;
     private final MatchStore matchStore;
+    private final StaticDataService staticData;
+    private final Set<String> unknownIds = ConcurrentHashMap.newKeySet();
 
-    public TftService(RiotClient riotClient, MatchStore matchStore) {
+    public TftService(RiotClient riotClient, MatchStore matchStore, StaticDataService staticData) {
         this.riotClient = riotClient;
         this.matchStore = matchStore;
+        this.staticData = staticData;
     }
 
     public PlayerProfileDto getProfile(String gameName, String tagLine) {
@@ -128,12 +137,12 @@ public class TftService {
         List<TraitDto> traits = nullSafe(p.traits()).stream()
                 .filter(t -> t.style() > 0)
                 .sorted(Comparator.comparingInt((RiotMatch.Trait t) -> t.style()).reversed())
-                .map(t -> new TraitDto(t.name(), t.numUnits(), t.style()))
+                .map(this::toTrait)
                 .toList();
 
         List<UnitDto> units = nullSafe(p.units()).stream()
-                .sorted(Comparator.comparingInt((RiotMatch.Unit u) -> u.tier()).reversed())
-                .map(u -> new UnitDto(u.characterId(), u.tier(), u.rarity(), nullSafe(u.itemNames())))
+                .map(this::toUnit)
+                .sorted(Comparator.comparingInt(UnitDto::cost).thenComparingInt(UnitDto::tier).reversed())
                 .toList();
 
         return new ParticipantDto(
@@ -142,9 +151,53 @@ public class TftService {
                 p.goldLeft(),
                 p.lastRound(),
                 puuid.equals(p.puuid()),
-                nullSafe(p.augments()),
                 traits,
                 units);
+    }
+
+    private UnitDto toUnit(RiotMatch.Unit u) {
+        Optional<StaticDataFile.Entry> champion = staticData.champion(u.characterId());
+        warnIfUnknown(champion, "champion", u.characterId());
+
+        return new UnitDto(
+                u.characterId(),
+                champion.map(StaticDataFile.Entry::name)
+                        .orElseGet(() -> StaticDataService.fallbackName(u.characterId())),
+                champion.map(StaticDataFile.Entry::cost).orElse(0),
+                u.tier(),
+                champion.map(StaticDataFile.Entry::image).map(TftService::toSprite).orElse(null),
+                nullSafe(u.itemNames()).stream().map(this::toItem).toList());
+    }
+
+    private ItemDto toItem(String itemId) {
+        Optional<StaticDataFile.Entry> item = staticData.item(itemId);
+        warnIfUnknown(item, "item", itemId);
+
+        return new ItemDto(
+                itemId,
+                item.map(StaticDataFile.Entry::name).orElseGet(() -> StaticDataService.fallbackName(itemId)),
+                item.map(StaticDataFile.Entry::image).map(TftService::toSprite).orElse(null));
+    }
+
+    private TraitDto toTrait(RiotMatch.Trait t) {
+        Optional<StaticDataFile.Entry> trait = staticData.trait(t.name());
+        warnIfUnknown(trait, "trait", t.name());
+
+        return new TraitDto(
+                trait.map(StaticDataFile.Entry::name).orElseGet(() -> StaticDataService.fallbackName(t.name())),
+                t.numUnits(),
+                t.style(),
+                trait.map(StaticDataFile.Entry::image).map(StaticDataFile.Image::full).orElse(null));
+    }
+
+    private static SpriteDto toSprite(StaticDataFile.Image image) {
+        return new SpriteDto(image.sprite(), image.x(), image.y(), image.w(), image.h());
+    }
+
+    private void warnIfUnknown(Optional<?> found, String kind, String id) {
+        if (found.isEmpty() && unknownIds.add(kind + ":" + id)) {
+            log.warn("No static data found for {} '{}'", kind, id);
+        }
     }
 
     private StatsDto computeStats(List<MatchSummaryDto> matches) {

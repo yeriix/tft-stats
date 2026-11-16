@@ -8,7 +8,6 @@ public record ParticipantDto(
         int goldLeft,
         int lastRound,
         boolean you,
-        List<String> augments,
         List<TraitDto> traits,
         List<UnitDto> units) {
 }
