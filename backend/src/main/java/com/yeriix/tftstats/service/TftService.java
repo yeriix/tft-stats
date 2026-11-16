@@ -3,6 +3,7 @@ package com.yeriix.tftstats.service;
 import com.yeriix.tftstats.client.RiotClient;
 import com.yeriix.tftstats.dto.AccountDto;
 import com.yeriix.tftstats.dto.MatchDetailDto;
+import com.yeriix.tftstats.dto.MatchPageDto;
 import com.yeriix.tftstats.dto.MatchSummaryDto;
 import com.yeriix.tftstats.dto.ParticipantDto;
 import com.yeriix.tftstats.dto.PlayerProfileDto;
@@ -24,7 +25,9 @@ public class TftService {
 
     private static final Logger log = LoggerFactory.getLogger(TftService.class);
 
-    private static final int MATCH_COUNT = 20;
+    private static final int PAGE_SIZE = 20;
+    private static final int MAX_PAGE = 4; // up to 100 games
+    private static final int MAX_MATCHES_SHOWN = (MAX_PAGE + 1) * PAGE_SIZE;
     private static final String RANKED_QUEUE = "RANKED_TFT";
     private static final String DOUBLE_UP = "Double Up";
 
@@ -38,9 +41,8 @@ public class TftService {
 
     public PlayerProfileDto getProfile(String gameName, String tagLine) {
         AccountDto account = riotClient.getAccount(gameName, tagLine);
-        String puuid = account.puuid();
 
-        RankDto rank = riotClient.getLeagueEntries(puuid).stream()
+        RankDto rank = riotClient.getLeagueEntries(account.puuid()).stream()
                 .filter(entry -> RANKED_QUEUE.equals(entry.queueType()))
                 .findFirst()
                 .map(entry -> new RankDto(
@@ -49,15 +51,23 @@ public class TftService {
                         entry.leaguePoints() == null ? 0 : entry.leaguePoints()))
                 .orElse(null);
 
-        syncRecentMatches(puuid);
+        return new PlayerProfileDto(account.puuid(), account.gameName(), account.tagLine(), rank);
+    }
 
-        List<MatchSummaryDto> matches = matchStore.findRecent(puuid, MATCH_COUNT).stream()
+    /**
+     * Makes sure the requested page of history is stored in the database and returns
+     * every stored match of the player for the selected mode, together with its stats.
+     */
+    public MatchPageDto getMatchPage(String puuid, String mode, int page) {
+        int safePage = Math.min(Math.max(page, 0), MAX_PAGE);
+        boolean riotHasMore = syncPage(puuid, safePage);
+
+        List<MatchSummaryDto> matches = matchStore.findRecent(puuid, queueIdFor(mode), MAX_MATCHES_SHOWN).stream()
                 .map(match -> toSummary(match, puuid))
                 .flatMap(Optional::stream)
                 .toList();
 
-        return new PlayerProfileDto(
-                puuid, account.gameName(), account.tagLine(), rank, computeStats(matches), matches);
+        return new MatchPageDto(computeStats(matches), matches, riotHasMore && safePage < MAX_PAGE);
     }
 
     public MatchDetailDto getMatchDetail(String matchId, String puuid) {
@@ -79,16 +89,28 @@ public class TftService {
                 participants);
     }
 
-    /** Downloads from Riot only the recent matches that are not stored in the database yet. */
-    private void syncRecentMatches(String puuid) {
+    /** Downloads from Riot the matches of one history page that are not stored yet. */
+    private boolean syncPage(String puuid, int page) {
+        List<String> ids = riotClient.getTftMatchIds(puuid, page * PAGE_SIZE, PAGE_SIZE);
         int fetched = 0;
-        for (String matchId : riotClient.getTftMatchIds(puuid, MATCH_COUNT)) {
+        for (String matchId : ids) {
             if (!matchStore.exists(matchId)) {
                 matchStore.save(riotClient.getTftMatchRaw(matchId));
                 fetched++;
             }
         }
-        log.info("Match sync finished: {} new matches fetched from Riot, the rest came from the database", fetched);
+        log.info("Page {} synced: {} new matches fetched from Riot, the rest came from the database", page, fetched);
+        return ids.size() == PAGE_SIZE;
+    }
+
+    private static Integer queueIdFor(String mode) {
+        return switch (mode == null ? "all" : mode) {
+            case "ranked" -> 1100;
+            case "normal" -> 1090;
+            case "hyper-roll" -> 1130;
+            case "double-up" -> 1160;
+            default -> null;
+        };
     }
 
     private Optional<MatchSummaryDto> toSummary(RiotMatch match, String puuid) {

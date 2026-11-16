@@ -10,11 +10,14 @@ import java.util.List;
 
 public interface MatchRepository extends JpaRepository<MatchEntity, String> {
 
-    @Query("""
+      @Query("""
             select m from MatchEntity m
             join MatchParticipantEntity p on p.matchId = m.matchId
             where p.puuid = :puuid
+              and (:queueId is null or m.queueId = :queueId)
             order by m.gameDatetime desc
             """)
-    List<MatchEntity> findByPlayer(@Param("puuid") String puuid, Pageable pageable);
+    List<MatchEntity> findByPlayer(@Param("puuid") String puuid,
+                                   @Param("queueId") Integer queueId,
+                                   Pageable pageable);
 }

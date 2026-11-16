@@ -45,10 +45,11 @@ public class RiotClient {
                 .body(new ParameterizedTypeReference<List<LeagueEntryDto>>() {});
     }
 
-    public List<String> getTftMatchIds(String puuid, int count) {
+    public List<String> getTftMatchIds(String puuid, int start, int count) {
         rateLimiter.acquire();
         return regionalClient.get()
-                .uri("/tft/match/v1/matches/by-puuid/{puuid}/ids?count={count}", puuid, count)
+                .uri("/tft/match/v1/matches/by-puuid/{puuid}/ids?start={start}&count={count}",
+                        puuid, start, count)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<String>>() {});
     }

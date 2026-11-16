@@ -53,8 +53,8 @@ public class MatchStore {
     }
 
     @Transactional(readOnly = true)
-    public List<RiotMatch> findRecent(String puuid, int limit) {
-        return matchRepository.findByPlayer(puuid, PageRequest.of(0, limit)).stream()
+    public List<RiotMatch> findRecent(String puuid, Integer queueId, int limit) {
+        return matchRepository.findByPlayer(puuid, queueId, PageRequest.of(0, limit)).stream()
                 .map(entity -> parse(entity.getRawJson()))
                 .toList();
     }
