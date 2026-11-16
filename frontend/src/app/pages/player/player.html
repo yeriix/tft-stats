@@ -89,14 +89,17 @@
       <div class="match-body">
         <div class="chips">
           @for (t of m.player.traits; track t.name) {
-            <span class="chip" [class]="'style-' + t.style">{{ prettyName(t.name) }} {{ t.numUnits }}</span>
+            <span class="trait-chip" [class]="'style-' + t.style">
+              @if (t.icon) {
+                <img [src]="'/tft/traits/' + t.icon" [alt]="t.name" width="20" height="20" />
+              }
+              {{ t.name }} {{ t.numUnits }}
+            </span>
           }
         </div>
-        <div class="chips">
+        <div class="units-row">
           @for (u of m.player.units; track $index) {
-            <span class="unit" [title]="itemsLabel(u.items)">
-              <span class="stars">{{ stars(u.tier) }}</span>{{ prettyName(u.characterId) }}
-            </span>
+            <app-unit-tile [unit]="u" />
           }
         </div>
       </div>

@@ -28,33 +28,24 @@
         </div>
       </div>
 
-      <h4>Traits</h4>
+            <h4>Traits</h4>
       <div class="chips">
         @for (t of p.traits; track t.name) {
-          <span class="chip" [class]="'style-' + t.style">{{ prettyName(t.name) }} {{ t.numUnits }}</span>
-        }
-      </div>
-
-      <h4>Units</h4>
-      <div class="chips">
-        @for (u of p.units; track $index) {
-          <span class="unit">
-            <span class="stars">{{ stars(u.tier) }}</span>{{ prettyName(u.characterId) }}
-            @if (u.items.length) {
-              <span class="unit-items">{{ itemsLabel(u.items) }}</span>
+          <span class="trait-chip" [class]="'style-' + t.style">
+            @if (t.icon) {
+              <img [src]="'/tft/traits/' + t.icon" [alt]="t.name" width="20" height="20" />
             }
+            {{ t.name }} {{ t.numUnits }}
           </span>
         }
       </div>
 
-      @if (p.augments.length) {
-        <h4>Augments</h4>
-        <div class="chips">
-          @for (a of p.augments; track $index) {
-            <span class="chip">{{ prettyName(a) }}</span>
-          }
-        </div>
-      }
-    </section>
+      <h4>Units</h4>
+      <div class="units-row">
+        @for (u of p.units; track $index) {
+          <app-unit-tile [unit]="u" />
+        }
+      </div>
+      </section>
   }
 }

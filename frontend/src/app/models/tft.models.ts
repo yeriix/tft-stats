@@ -11,17 +11,34 @@ export interface Stats {
   winRate: number;
 }
 
+export interface SpriteRef {
+  sprite: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface Item {
+  id: string;
+  name: string;
+  icon: SpriteRef | null;
+}
+
 export interface Trait {
   name: string;
   numUnits: number;
   style: number;
+  icon: string | null;
 }
 
 export interface Unit {
   characterId: string;
+  name: string;
+  cost: number;
   tier: number;
-  rarity: number;
-  items: string[];
+  icon: SpriteRef | null;
+  items: Item[];
 }
 
 export interface Participant {
@@ -30,7 +47,6 @@ export interface Participant {
   goldLeft: number;
   lastRound: number;
   you: boolean;
-  augments: string[];
   traits: Trait[];
   units: Unit[];
 }
@@ -55,8 +71,6 @@ export interface MatchPage {
   hasMore: boolean;
 }
 
-export type GameMode = 'all' | 'ranked' | 'normal' | 'hyper-roll' | 'double-up';
-
 export interface MatchDetailResponse {
   matchId: string;
   gameDatetime: number;
@@ -65,3 +79,5 @@ export interface MatchDetailResponse {
   setNumber: number;
   participants: Participant[];
 }
+
+export type GameMode = 'all' | 'ranked' | 'normal' | 'hyper-roll' | 'double-up';

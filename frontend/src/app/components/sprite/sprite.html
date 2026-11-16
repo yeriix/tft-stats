@@ -1,0 +1,14 @@
+<span class="sprite-box" [style.width.px]="size()" [style.height.px]="size()" [title]="label()">
+  @if (icon(); as i) {
+    <span
+      class="sprite-img"
+      [style.width.px]="i.w"
+      [style.height.px]="i.h"
+      [style.background-image]="'url(/tft/sprites/' + i.sprite + ')'"
+      [style.background-position]="'-' + i.x + 'px -' + i.y + 'px'"
+      [style.transform]="'scale(' + size() / i.w + ')'"
+    ></span>
+  } @else {
+    <span class="sprite-missing">?</span>
+  }
+</span>

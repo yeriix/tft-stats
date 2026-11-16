@@ -1,21 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { UnitTile } from '../../components/unit-tile/unit-tile';
 import { GameMode, MatchSummary, PlayerProfile, Stats } from '../../models/tft.models';
 import { TftService } from '../../services/tft.services';
-import {
-  itemsLabel,
-  placementClass,
-  prettyName,
-  rankLabel,
-  stars,
-  tierClass,
-  timeAgo,
-} from '../../utils/format';
+import { placementClass, rankLabel, tierClass, timeAgo } from '../../utils/format';
 
 @Component({
   selector: 'app-player',
-  imports: [RouterLink],
+  imports: [RouterLink, UnitTile],
   templateUrl: './player.html',
   styleUrl: './player.scss',
 })
@@ -42,9 +35,6 @@ export class Player {
   loadingMatches = signal(false);
   error = signal('');
 
-  readonly prettyName = prettyName;
-  readonly itemsLabel = itemsLabel;
-  readonly stars = stars;
   readonly rankLabel = rankLabel;
   readonly tierClass = tierClass;
   readonly placementClass = placementClass;

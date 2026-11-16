@@ -1,0 +1,13 @@
+@if (unit(); as u) {
+  <div class="unit-tile">
+    <div class="unit-stars" [class]="'stars-' + u.tier">{{ stars(u.tier) }}</div>
+    <div class="unit-icon" [class]="'cost-' + u.cost">
+      <app-sprite [icon]="u.icon" [size]="48" [label]="u.name" />
+    </div>
+    <div class="unit-items">
+      @for (item of u.items; track $index) {
+        <app-sprite [icon]="item.icon" [size]="16" [label]="item.name" />
+      }
+    </div>
+  </div>
+}

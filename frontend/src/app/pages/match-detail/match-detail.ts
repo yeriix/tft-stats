@@ -3,21 +3,14 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest } from 'rxjs';
+import { UnitTile } from '../../components/unit-tile/unit-tile';
 import { MatchDetailResponse } from '../../models/tft.models';
 import { TftService } from '../../services/tft.services';
-
-import {
-  formatDate,
-  formatDuration,
-  itemsLabel,
-  placementClass,
-  prettyName,
-  stars,
-} from '../../utils/format';
+import { formatDate, formatDuration, placementClass } from '../../utils/format';
 
 @Component({
   selector: 'app-match-detail',
-  imports: [],
+  imports: [UnitTile],
   templateUrl: './match-detail.html',
   styleUrl: './match-detail.scss',
 })
@@ -30,9 +23,6 @@ export class MatchDetail {
   loading = signal(true);
   error = signal('');
 
-  readonly prettyName = prettyName;
-  readonly itemsLabel = itemsLabel;
-  readonly stars = stars;
   readonly placementClass = placementClass;
   readonly formatDate = formatDate;
   readonly formatDuration = formatDuration;
