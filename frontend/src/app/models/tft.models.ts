@@ -47,9 +47,15 @@ export interface PlayerProfile {
   gameName: string;
   tagLine: string;
   ranked: Rank | null;
+}
+
+export interface MatchPage {
   stats: Stats;
   matches: MatchSummary[];
+  hasMore: boolean;
 }
+
+export type GameMode = 'all' | 'ranked' | 'normal' | 'hyper-roll' | 'double-up';
 
 export interface MatchDetailResponse {
   matchId: string;

@@ -1,10 +1,12 @@
 @if (loading()) {
-  <div class="state">Loading player data... (first search can take a few seconds)</div>
+  <div class="state">Loading player...</div>
 }
 
 @if (error()) {
   <div class="state error">{{ error() }}</div>
-  <p class="state"><a routerLink="/" class="link">Back to search</a></p>
+  @if (!profile()) {
+    <p class="state"><a routerLink="/" class="link">Back to search</a></p>
+  }
 }
 
 @if (profile(); as p) {
@@ -27,32 +29,54 @@
     }
   </section>
 
-  <section class="stats-grid">
-    <div class="stat">
-      <div class="value">{{ p.stats.averagePlacement }}</div>
-      <div class="label">Average placement</div>
-    </div>
-    <div class="stat">
-      <div class="value">{{ p.stats.top4Rate }}%</div>
-      <div class="label">Top 4 rate</div>
-    </div>
-    <div class="stat">
-      <div class="value">{{ p.stats.winRate }}%</div>
-      <div class="label">1st place rate</div>
-    </div>
-    <div class="stat">
-      <div class="value">{{ p.stats.gamesAnalyzed }}</div>
-      <div class="label">Games analyzed</div>
-    </div>
-  </section>
+  <div class="filters">
+    @for (m of modes; track m.value) {
+      <button
+        type="button"
+        class="filter"
+        [class.active]="mode() === m.value"
+        [disabled]="loadingMatches()"
+        (click)="setMode(m.value)"
+      >
+        {{ m.label }}
+      </button>
+    }
+  </div>
 
-  <h2 class="section-title">Recent matches</h2>
-
-  @if (p.matches.length === 0) {
-    <div class="state">No recent matches found.</div>
+  @if (stats(); as s) {
+    @if (s.gamesAnalyzed > 0) {
+      <section class="stats-grid">
+        <div class="stat">
+          <div class="value">{{ s.averagePlacement }}</div>
+          <div class="label">Average placement</div>
+        </div>
+        <div class="stat">
+          <div class="value">{{ s.top4Rate }}%</div>
+          <div class="label">Top 4 rate</div>
+        </div>
+        <div class="stat">
+          <div class="value">{{ s.winRate }}%</div>
+          <div class="label">1st place rate</div>
+        </div>
+        <div class="stat">
+          <div class="value">{{ s.gamesAnalyzed }}</div>
+          <div class="label">Games analyzed</div>
+        </div>
+      </section>
+    } @else if (matches().length > 0) {
+      <p class="muted">Double Up games are not included in the stats.</p>
+    }
   }
 
-  @for (m of p.matches; track m.matchId) {
+  <h2 class="section-title">Matches</h2>
+
+  @if (loadingMatches()) {
+    <div class="state">Loading games...</div>
+  } @else if (matches().length === 0) {
+    <div class="state">No games found for this mode.</div>
+  }
+
+  @for (m of matches(); track m.matchId) {
     <a class="match-row" [routerLink]="['/match', m.matchId]" [queryParams]="{ puuid: p.puuid }">
       <div class="placement" [class]="placementClass(m.player.placement)">#{{ m.player.placement }}</div>
 
@@ -77,5 +101,11 @@
         </div>
       </div>
     </a>
+  }
+
+  @if (hasMore() && !loadingMatches()) {
+    <div class="load-more">
+      <button type="button" class="filter" (click)="loadMore()">Load more games</button>
+    </div>
   }
 }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { MatchDetailResponse, PlayerProfile } from '../models/tft.models';
+import { GameMode, MatchDetailResponse, MatchPage, PlayerProfile } from '../models/tft.models';
 
 @Injectable({ providedIn: 'root' })
 export class TftService {
@@ -12,6 +12,12 @@ export class TftService {
     return this.http.get<PlayerProfile>(
       `${this.apiUrl}/players/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
     );
+  }
+
+  getMatches(puuid: string, mode: GameMode, page: number): Observable<MatchPage> {
+    return this.http.get<MatchPage>(`${this.apiUrl}/matches`, {
+      params: { puuid, mode, page },
+    });
   }
 
   getMatch(matchId: string, puuid: string): Observable<MatchDetailResponse> {
