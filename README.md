@@ -28,13 +28,38 @@ Stats platform for Teamfight Tactics built on the official Riot Games API.
 
 Icons and static data are included in the repository. To refresh them for a new set, run `scripts/download-static-data.ps1`.
 
-## Architecture notes
-- The backend exposes its own models instead of Riot's raw JSON
-- A sliding window rate limiter keeps requests under the Riot development key limits
-- Matches are stored as received from Riot plus an index table, and served from the database afterwards
+## Configuration
 
-## Disclaimer
-(keep your existing disclaimer text here)
+### 1. Get a Riot API key
+1. Go to https://developer.riotgames.com and sign in with your Riot account
+2. In the dashboard, copy your **Development API Key** (it starts with `RGAPI-`)
+3. Development keys expire every 24 hours: click **Regenerate API Key** in the dashboard when it stops working and update your `.env`
+
+The development key is personal and rate limited (20 requests per second and 100 every 2 minutes). The app already includes a rate limiter and stores matches in the database to use as few requests as possible. To run a public deployment you need to register the product in the Riot Developer Portal and request a production key.
+
+### 2. Create your `.env`
+Copy `.env.example` to `.env` in the repository root and fill it in. Do not use quotes or spaces around the `=`:
+
+```
+RIOT_API_KEY=RGAPI-your-key
+MYSQL_ROOT_PASSWORD=choose-a-password
+MYSQL_DATABASE=tftstats
+MYSQL_USER=tftstats
+MYSQL_PASSWORD=choose-another-password
+```
+
+The `.env` file is ignored by Git. Never commit your API key.
+
+### 3. Region
+The backend is configured for EUW. To use another region, change these two lines in `backend/src/main/resources/application.properties`:
+
+| Region | `riot.regional-host` | `riot.platform-host` |
+|---|---|---|
+| EUW | `https://europe.api.riotgames.com` | `https://euw1.api.riotgames.com` |
+| NA | `https://americas.api.riotgames.com` | `https://na1.api.riotgames.com` |
+| KR | `https://asia.api.riotgames.com` | `https://kr.api.riotgames.com` |
+
+A region selector is planned for a future version.
 
 ## DISCLAIMER
 "tft-stats" isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
