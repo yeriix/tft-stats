@@ -10,21 +10,41 @@
 }
 
 @if (profile(); as p) {
-  <section class="card profile-header">
-    <div>
-      <h1>{{ p.gameName }} <span class="muted">#{{ p.tagLine }}</span></h1>
-      <a routerLink="/" class="link">New search</a>
+    <section class="card profile-header">
+    <div class="profile-identity">
+      @if (p.profileIconUrl && !iconFailed()) {
+        <div class="profile-icon">
+          <img
+            [src]="p.profileIconUrl"
+            alt="Summoner icon"
+            width="72"
+            height="72"
+            (error)="iconFailed.set(true)"
+          />
+          <span class="profile-level">{{ p.summonerLevel }}</span>
+        </div>
+      }
+      <div>
+        <h1>{{ p.gameName }} <span class="muted">#{{ p.tagLine }}</span></h1>
+        <a routerLink="/" class="link">New search</a>
+      </div>
     </div>
 
     @if (p.ranked; as r) {
-      <div class="rank-badge" [class]="tierClass(r.tier)">
-        <div class="rank-name">{{ rankLabel(r) }}</div>
-        <div class="rank-lp">{{ r.leaguePoints }} LP</div>
+      <div class="rank-badge rank-with-emblem" [class]="tierClass(r.tier)">
+        <img class="rank-emblem" [src]="regaliaUrl(r.tier)" alt="" width="56" height="56" />
+        <div>
+          <div class="rank-name">{{ rankLabel(r) }}</div>
+          <div class="rank-lp">{{ r.leaguePoints }} LP</div>
+        </div>
       </div>
     } @else {
-      <div class="rank-badge">
-        <div class="rank-name">Unranked</div>
-        <div class="rank-lp">No ranked TFT data</div>
+      <div class="rank-badge rank-with-emblem">
+        <img class="rank-emblem" [src]="regaliaUrl(null)" alt="" width="56" height="56" />
+        <div>
+          <div class="rank-name">Unranked</div>
+          <div class="rank-lp">No ranked TFT data</div>
+        </div>
       </div>
     }
   </section>

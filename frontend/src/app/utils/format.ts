@@ -52,3 +52,11 @@ export function formatDuration(seconds: number): string {
   const rest = seconds % 60;
   return `${minutes}:${rest.toString().padStart(2, '0')}`;
 }
+
+export function regaliaUrl(tier: string | null | undefined): string {
+  const special: Record<string, string> = { GRANDMASTER: 'GrandMaster' };
+  const name = tier
+    ? (special[tier] ?? tier.charAt(0) + tier.slice(1).toLowerCase())
+    : 'Provisional';
+  return `/tft/regalia/TFT_Regalia_${name}.png`;
+}

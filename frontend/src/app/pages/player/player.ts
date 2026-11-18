@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitTile } from '../../components/unit-tile/unit-tile';
 import { GameMode, MatchSummary, PlayerProfile, Stats } from '../../models/tft.models';
 import { TftService } from '../../services/tft.services';
-import { placementClass, rankLabel, tierClass, timeAgo } from '../../utils/format';
+import { placementClass, rankLabel, regaliaUrl, tierClass, timeAgo } from '../../utils/format';
 
 @Component({
   selector: 'app-player',
@@ -30,6 +30,7 @@ export class Player {
   hasMore = signal(false);
   mode = signal<GameMode>('all');
   page = signal(0);
+  iconFailed = signal(false);
 
   loading = signal(true);
   loadingMatches = signal(false);
@@ -37,6 +38,7 @@ export class Player {
 
   readonly rankLabel = rankLabel;
   readonly tierClass = tierClass;
+  readonly regaliaUrl = regaliaUrl;
   readonly placementClass = placementClass;
   readonly timeAgo = timeAgo;
 
@@ -68,6 +70,7 @@ export class Player {
     this.hasMore.set(false);
     this.mode.set('all');
     this.page.set(0);
+    this.iconFailed.set(false);
 
     this.tftService.getProfile(gameName, tagLine).subscribe({
       next: (profile) => {

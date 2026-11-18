@@ -63,6 +63,8 @@ export interface PlayerProfile {
   gameName: string;
   tagLine: string;
   ranked: Rank | null;
+  profileIconUrl: string | null;
+  summonerLevel: number;
 }
 
 export interface MatchPage {
