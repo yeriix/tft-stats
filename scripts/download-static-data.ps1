@@ -49,4 +49,11 @@ foreach ($icon in $traitIcons) {
     Invoke-WebRequest "$base/img/trait/$icon" -OutFile (Join-Path $traitsDir $icon)
 }
 
+Write-Host "Downloading rank emblems..."
+$regaliaDir = Join-Path $root "frontend\public\tft\regalia"
+New-Item -ItemType Directory -Force $regaliaDir | Out-Null
+foreach ($tier in "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "GrandMaster", "Challenger", "Provisional") {
+    Invoke-WebRequest "$base/img/regalia/TFT_Regalia_$tier.png" -OutFile (Join-Path $regaliaDir "TFT_Regalia_$tier.png")
+}
+
 Write-Host "Done."
