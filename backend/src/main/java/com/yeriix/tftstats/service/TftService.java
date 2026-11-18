@@ -171,12 +171,14 @@ public class TftService {
                 .sorted(Comparator.comparingInt(UnitDto::cost).thenComparingInt(UnitDto::tier).reversed())
                 .toList();
 
-        return new ParticipantDto(
+                return new ParticipantDto(
                 p.placement(),
                 p.level(),
                 p.goldLeft(),
                 p.lastRound(),
                 puuid.equals(p.puuid()),
+                blankToNull(p.riotIdGameName()),
+                blankToNull(p.riotIdTagline()),
                 traits,
                 units);
     }
@@ -261,5 +263,9 @@ public class TftService {
 
     private static <T> List<T> nullSafe(List<T> list) {
         return list == null ? List.of() : list;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

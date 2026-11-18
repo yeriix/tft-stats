@@ -8,6 +8,8 @@ public record ParticipantDto(
         int goldLeft,
         int lastRound,
         boolean you,
+        String gameName,
+        String tagLine,
         List<TraitDto> traits,
         List<UnitDto> units) {
 }

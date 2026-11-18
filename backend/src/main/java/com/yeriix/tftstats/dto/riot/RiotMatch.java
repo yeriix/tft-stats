@@ -24,6 +24,8 @@ public record RiotMatch(Metadata metadata, Info info) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Participant(
             String puuid,
+            String riotIdGameName,
+            String riotIdTagline,
             int placement,
             int level,
             @JsonProperty("gold_left") int goldLeft,
@@ -31,7 +33,7 @@ public record RiotMatch(Metadata metadata, Info info) {
             List<Trait> traits,
             List<Unit> units) {
     }
-
+    
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Trait(
             String name,
