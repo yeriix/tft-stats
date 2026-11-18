@@ -136,3 +136,8 @@ a { color: inherit; text-decoration: none; }
 .profile-level { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 0 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font-size: 0.72rem; }
 .rank-with-emblem { display: flex; align-items: center; gap: 12px; text-align: left; padding: 8px 18px 8px 10px; }
 .rank-emblem { flex: none; object-fit: contain; }
+
+/* Player names in match detail */
+.player-link { font-weight: 600; }
+.player-link:hover { color: var(--accent); }
+.you-badge { margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; background: var(--accent); color: #fff; }

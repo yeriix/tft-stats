@@ -19,7 +19,16 @@
       <div class="participant-head">
         <div class="placement" [class]="placementClass(p.placement)">#{{ p.placement }}</div>
         <div>
-          <strong>{{ p.you ? 'Searched player' : 'Opponent' }}</strong>
+          @if (p.gameName && p.tagLine) {
+            <a class="player-link" [routerLink]="['/player', p.gameName, p.tagLine]">
+              {{ p.gameName }} <span class="muted">#{{ p.tagLine }}</span>
+            </a>
+          } @else {
+            <strong class="muted">Hidden player</strong>
+          }
+          @if (p.you) {
+            <span class="you-badge">You</span>
+          }
           <div class="participant-stats">
             <span>Level <strong>{{ p.level }}</strong></span>
             <span>Gold left <strong>{{ p.goldLeft }}</strong></span>

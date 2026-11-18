@@ -47,6 +47,8 @@ export interface Participant {
   goldLeft: number;
   lastRound: number;
   you: boolean;
+  gameName: string | null;
+  tagLine: string | null;
   traits: Trait[];
   units: Unit[];
 }

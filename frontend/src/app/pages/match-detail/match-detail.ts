@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { UnitTile } from '../../components/unit-tile/unit-tile';
 import { MatchDetailResponse } from '../../models/tft.models';
@@ -10,7 +10,7 @@ import { formatDate, formatDuration, placementClass } from '../../utils/format';
 
 @Component({
   selector: 'app-match-detail',
-  imports: [UnitTile],
+  imports: [UnitTile, RouterLink],
   templateUrl: './match-detail.html',
   styleUrl: './match-detail.scss',
 })
