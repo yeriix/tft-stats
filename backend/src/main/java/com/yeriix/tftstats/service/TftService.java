@@ -14,11 +14,14 @@ import com.yeriix.tftstats.dto.StatsDto;
 import com.yeriix.tftstats.dto.TraitDto;
 import com.yeriix.tftstats.dto.UnitDto;
 import com.yeriix.tftstats.dto.riot.RiotMatch;
+import com.yeriix.tftstats.dto.riot.SummonerDto;
+import com.yeriix.tftstats.staticdata.ProfileIconService;
 import com.yeriix.tftstats.staticdata.StaticDataFile;
 import com.yeriix.tftstats.staticdata.StaticDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.Comparator;
 import java.util.List;
@@ -40,18 +43,22 @@ public class TftService {
     private final RiotClient riotClient;
     private final MatchStore matchStore;
     private final StaticDataService staticData;
+    private final ProfileIconService profileIcons;
     private final Set<String> unknownIds = ConcurrentHashMap.newKeySet();
 
-    public TftService(RiotClient riotClient, MatchStore matchStore, StaticDataService staticData) {
+    public TftService(RiotClient riotClient, MatchStore matchStore,
+                      StaticDataService staticData, ProfileIconService profileIcons) {
         this.riotClient = riotClient;
         this.matchStore = matchStore;
         this.staticData = staticData;
+        this.profileIcons = profileIcons;
     }
 
     public PlayerProfileDto getProfile(String gameName, String tagLine) {
         AccountDto account = riotClient.getAccount(gameName, tagLine);
+        String puuid = account.puuid();
 
-        RankDto rank = riotClient.getLeagueEntries(account.puuid()).stream()
+        RankDto rank = riotClient.getLeagueEntries(puuid).stream()
                 .filter(entry -> RANKED_QUEUE.equals(entry.queueType()))
                 .findFirst()
                 .map(entry -> new RankDto(
@@ -60,7 +67,15 @@ public class TftService {
                         entry.leaguePoints() == null ? 0 : entry.leaguePoints()))
                 .orElse(null);
 
-        return new PlayerProfileDto(account.puuid(), account.gameName(), account.tagLine(), rank);
+        Optional<SummonerDto> summoner = findSummoner(puuid);
+
+        return new PlayerProfileDto(
+                puuid,
+                account.gameName(),
+                account.tagLine(),
+                rank,
+                summoner.map(s -> profileIcons.iconUrl(s.profileIconId())).orElse(null),
+                summoner.map(SummonerDto::summonerLevel).orElse(0L));
     }
 
     /**
@@ -96,6 +111,17 @@ public class TftService {
                 queueName(info.queueId()),
                 info.tftSetNumber(),
                 participants);
+    }
+
+    /** The icon is a nice extra, so a failure here must not break the whole profile. */
+    private Optional<SummonerDto> findSummoner(String puuid) {
+        try {
+            return Optional.ofNullable(riotClient.getSummoner(puuid));
+        } catch (RestClientResponseException e) {
+            log.warn("Could not load summoner data (HTTP {}), showing the profile without icon",
+                    e.getStatusCode().value());
+            return Optional.empty();
+        }
     }
 
     /** Downloads from Riot the matches of one history page that are not stored yet. */

@@ -6,6 +6,7 @@ import com.yeriix.tftstats.dto.riot.LeagueEntryDto;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import com.yeriix.tftstats.dto.riot.SummonerDto;
 
 import java.util.List;
 
@@ -43,6 +44,14 @@ public class RiotClient {
                 .uri("/tft/league/v1/by-puuid/{puuid}", puuid)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<LeagueEntryDto>>() {});
+    }
+
+    public SummonerDto getSummoner(String puuid) {
+        rateLimiter.acquire();
+        return platformClient.get()
+                .uri("/tft/summoner/v1/summoners/by-puuid/{puuid}", puuid)
+                .retrieve()
+                .body(SummonerDto.class);
     }
 
     public List<String> getTftMatchIds(String puuid, int start, int count) {
